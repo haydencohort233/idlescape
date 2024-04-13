@@ -1,0 +1,13 @@
+.tab-buttons button {
+    margin-right: 10px;
+  }
+  
+  /* Hide the Buildings component when the active tab is not 'Buildings' */
+  .Buildings {
+    display: none;
+  }
+  
+  .Buildings.active {
+    display: block;
+  }
+  

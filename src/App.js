@@ -1,40 +1,101 @@
 // App.js
 import React from 'react';
 import GoldenPieces from './components/GoldenPieces/GoldenPieces';
-import Experience from './components/Experience/Experience';
-import Goblins from './components/Buildings/Goblins';
+import Explore from './components/Explore/Explore';
+import Buildings from './components/Buildings/Buildings';
 
 class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      goldenPieces: 0, // Set initial Golden Pieces to 100 for testing
-      goblinCost: 10 // Set initial Goblin Cost
+      activeTab: 'Buildings',
+      goldenPieces: 0,
+      goblinCost: 10,
+      goblinCount: 0,
+      ratCost: 5,
+      ratCount: 0,
+      goblinIncome: 1,
     };
   }
+  
+  componentDidMount() {
+    // Start income generation timer when component mounts
+    this.incomeTimer = setInterval(this.generateIncome, 1000);
+  }
 
-  // Function to update the total number of Golden Pieces in App.js
+  componentWillUnmount() {
+    // Clear income generation timer when component unmounts
+    clearInterval(this.incomeTimer);
+  }
+
+  generateIncome = () => {
+    const { activeTab, goblinCount, goblinIncome } = this.state;
+    // Only generate income if in the "Buildings" tab or if goblin count > 0 in "Explore" tab
+    if (activeTab === 'Buildings' || (activeTab === 'Explore' && goblinCount > 0)) {
+      const totalIncome = goblinCount * goblinIncome;
+      if (!isNaN(totalIncome)) {
+        this.setState(prevState => ({
+          goldenPieces: prevState.goldenPieces + totalIncome
+        }));
+      } else {
+        console.error("Invalid income calculated:", totalIncome);
+      }
+    }
+  }
+
+  handleTabChange = (tab) => {
+    this.setState({ activeTab: tab });
+  }
+
   updateGoldenPieces = (amount) => {
     this.setState(prevState => ({
       goldenPieces: prevState.goldenPieces + amount
     }));
   }
 
+  updateGoblinCount = (count) => {
+    this.setState(prevState => ({
+      goblinCount: count,
+      goblinCost: Math.ceil(prevState.goblinCost * 1.2)
+    }));
+  }
+  
   render() {
-    const { goldenPieces } = this.state; // Remove goblinCost from here
-    const { goblinCost } = this.state; // Set goblinCost as a separate variable
+    const { activeTab, goldenPieces, goblinCost, goblinCount, goblinIncome } = this.state;
+
     return (
       <div>
-        <GoldenPieces 
-          goldenPieces={goldenPieces}
-          updateGoldenPieces={this.updateGoldenPieces}
-        />
-        <Goblins 
-          goldenPieces={goldenPieces}
-          goblinCost={goblinCost} // Pass goblinCost as prop
-          updateGoldenPieces={this.updateGoldenPieces}
-        />
-        {/* Other components */}
+        <div className="tab-buttons">
+          <button onClick={() => this.handleTabChange('Buildings')} className={activeTab === 'Buildings' ? 'active' : ''}>Buildings</button>
+          <button onClick={() => this.handleTabChange('Explore')} className={activeTab === 'Explore' ? 'active' : ''}>Explore</button>
+        </div>
+
+        {activeTab === 'Buildings' && (
+          <div>
+            <GoldenPieces 
+              goldenPieces={goldenPieces}
+              updateGoldenPieces={this.updateGoldenPieces}
+            />
+            <Buildings 
+              activeTab={activeTab}
+              goldenPieces={goldenPieces}
+              updateGoldenPieces={this.updateGoldenPieces}
+
+              goblinCount={goblinCount}
+              goblinCost={goblinCost}
+              goblinIncome={goblinIncome}
+              updateGoblinCount={this.updateGoblinCount}
+              
+            />
+          </div>
+        )}
+
+        {activeTab === 'Explore' && (
+          <Explore 
+            goldenPieces={goldenPieces}
+            updateGoldenPieces={this.updateGoldenPieces}
+          />
+        )}
       </div>
     );
   }
